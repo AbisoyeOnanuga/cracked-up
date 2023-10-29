@@ -20,14 +20,13 @@ export default function Home() {
 
   return (
     <div className={styles.container}>
+      
       <Head>
         <title>FCL Next Scaffold</title>
         <meta name="description" content="FCL Next Scaffold for the Flow Blockchain" />
         <link rel="icon" href="/favicon.svg" />
       </Head>
-
-      // <Game numPlayers={numPlayers} /> // pass the numPlayers prop to the Game component
-
+      <Game numPlayers={numPlayers} /> // pass the numPlayers prop to the Game component
       <div className={styles.controls}>
         <h2 className={styles.subtitle}>Choose your number of players</h2>
         <input

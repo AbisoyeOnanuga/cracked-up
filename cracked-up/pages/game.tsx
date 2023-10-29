@@ -23,6 +23,11 @@ type Player = {
   cards: Card[];
 };
 
+// Define the type of the props for the Game component
+type GameProps = {
+    numPlayers: number;
+};  
+
 // Define the constants for the number of players, cards, and points
 const MIN_PLAYERS = 2;
 const MAX_PLAYERS = 6;
