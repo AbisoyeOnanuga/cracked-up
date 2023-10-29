@@ -2,25 +2,20 @@
 import React from "react";
 import styles from "./Card.module.css"; // This is a CSS module for styling the card
 
-interface CardProps {
-  card: {
-    id: number;
-    front: string;
-    back: string;
-    type: string;
-  };
-  selected?: boolean;
-  onClick?: () => void;
-}
+// Define the type of the props for the Card component
+type CardProps = {
+  front: string;
+  back: string;
+};
 
-export default function Card({ card, selected, onClick }: CardProps) {
+// Define the Card component using the CardProps type
+const Card = ({ front, back }: CardProps) => {
   return (
-    <div
-      className={`${styles.card} ${selected ? styles.selected : ""}`}
-      onClick={onClick}
-    >
-      <div className={styles.front}>{card.front}</div>
-      <div className={styles.back}>{card.back}</div>
+    <div className="card">
+      <p>{front}</p>
+      <p>{back}</p>
     </div>
   );
-}
+};
+
+export default Card;

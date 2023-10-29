@@ -2,11 +2,12 @@
 import React from "react";
 import styles from "./winner.module.css"; // This is a CSS module for styling
 
-interface WinnerProps {
+type WinnerProps = {
   score: any; // The score object that contains the points of each player
-}
+  name: string;
+};
 
-export default function Winner({ score }: WinnerProps) {
+export default function Winner({ name, score }: WinnerProps) {
   // This is a function that finds the maximum value in an object
   const max = (obj: any) => {
     let maxVal = -Infinity; // initialize the maximum value to negative infinity
@@ -32,7 +33,7 @@ export default function Winner({ score }: WinnerProps) {
     <div className={styles.container}>
       <h1 className={styles.title}>Game Over!</h1>
       <p className={styles.message}>{pickWinner(score)}</p>
-      <p className={styles.message}>Congratulations!</p>
+      <p className={styles.message}>Congratulations! {name}! You have won the game with {score} points!</p>
     </div>
   );
 }

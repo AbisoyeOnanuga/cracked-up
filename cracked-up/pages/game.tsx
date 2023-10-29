@@ -1,15 +1,15 @@
 // This is the game page that imports and uses the custom components
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import shuffle from "../components/shuffle"; // import the shuffle component
+import Shuffle from "../components/shuffle"; // import the shuffle component
 import Score from "../components/score"; // import the score component
 import Judge from "../components/judge"; // import the judge component
-import Init from "../components/init"; // import the init component
+//import Init from "../components/init"; // import the init component
 import Winner from "../components/winner"; // import the winner component
 import Card from "../components/card"; // import the card component
 import styles from "./Game.module.css"; // import the game styles
 
-// Define the types of cards, players, and game modes
+// Define the types of cards and players
 type Card = {
   id: number;
   front: string;
@@ -22,8 +22,6 @@ type Player = {
   score: number;
   cards: Card[];
 };
-
-type GameMode = "classic" | "points";
 
 // Define the constants for the number of players, cards, and points
 const MIN_PLAYERS = 2;
@@ -39,44 +37,6 @@ const questionCards: Card[] = [
 const answerCards: Card[] = [
   // Add your answer cards here
 ];
-/*
-// Define a function to shuffle an array of cards
-const shuffle = (array: Card[]) => {
-  let currentIndex = array.length,
-    randomIndex;
-
-  // While there remain elements to shuffle...
-  while (currentIndex != 0) {
-    // Pick a remaining element...
-    randomIndex = Math.floor(Math.random() * currentIndex);
-    currentIndex--;
-
-    // And swap it with the current element.
-    [array[currentIndex], array[randomIndex]] = [
-      array[randomIndex],
-      array[currentIndex],
-    ];
-  }
-
-  return array;
-};
-*/
-// Define a function to deal cards to players
-const dealCards = (players: Player[], cards: Card[]) => {
-  // Shuffle the cards first
-  const shuffledCards = shuffle(cards);
-
-  // Loop through the players and assign them cards
-  for (let i = 0; i < players.length; i++) {
-    players[i].cards = shuffledCards.slice(
-      i * CARDS_PER_PLAYER,
-      (i + 1) * CARDS_PER_PLAYER
-    );
-  }
-
-  // Return the remaining cards
-  return shuffledCards.slice(players.length * CARDS_PER_PLAYER);
-};
 
 // Define a component for the game page
 const GamePage = () => {
@@ -220,10 +180,10 @@ const GamePage = () => {
     setPlayers(playersArray);
 
     // Set the question deck state with a shuffled copy of the question cards array
-    setQuestionDeck(shuffle([...questionCards]));
+    setQuestionDeck(Shuffle([...questionCards]));
 
     // Set the answer deck state with a shuffled copy of the answer cards array
-    setAnswerDeck(shuffle([...answerCards]));
+    setAnswerDeck(Shuffle([...answerCards]));
 
     // Start a new round of the game
     startNewRound();
@@ -236,7 +196,7 @@ const GamePage = () => {
         <div className="game-over">
           <h2>Game Over!</h2>
           {winner ? (
-            <p>Congratulations, {winner.name}! You have won the game with {winner.score} points!</p>
+            <Winner name={winner.name} score={winner.score} />
           ) : (
             <p>It's a tie! No one has won the game.</p>
           )}
@@ -248,29 +208,33 @@ const GamePage = () => {
           <p>The judge is {players[currentJudge].name}.</p>
           {currentQuestion && (
             <div className="question-card">
-              <p>{currentQuestion.front}</p>
+              <Card front={currentQuestion.front} back={currentQuestion.back} />
             </div>
           )}
           <h3>Current Answers</h3>
           <div className="answer-cards">
             {currentAnswers.map((card) => (
               <div key={card.id} className="answer-card" onClick={() => handleVote(card)}>
-                <p>{card.front}</p>
+                <Card front={card.front} back={card.back} />
               </div>
             ))}
           </div>
           <h3>Your Cards</h3>
           <div className="your-cards">
             {players[0].cards.map((card) => (
-              <div key={card.id} className="yourcard" onClick={() => handleCardSelect(card)}>
-              <p>{card.front}</p>
-            </div>
-          ))}
+              <div key={card.id} className="your-card" onClick={() => handleCardSelect(card)}>
+                <Card front={card.front} back={card.back} />
+              </div>
+            ))}
+          </div>
         </div>
+      )}
+      <h4>Scoreboard</h4>
+      <div className="scoreboard">
+        {players.map((player) => (
+          <Score key={player.id} name={player.name} score={player.score} />
+        ))}
       </div>
-    )}
-  </div>
-);
+    </div>
+  );
 };
-
-export default GamePage;
