@@ -1,0 +1,49 @@
+.form {
+    width: 80%; /* set the width of the form to 80% of its parent element */
+    height: 80%; /* set the height of the form to 80% of its parent element */
+    display: flex; /* use flexbox layout for the form */
+    flex-direction: column; /* stack the form elements vertically */
+    justify-content: space-around; /* distribute the space evenly around the form elements */
+  }
+  
+  .names {
+    display: flex; /* use flexbox layout for the names section */
+    flex-wrap: wrap; /* allow the names section to wrap to multiple lines if needed */
+    justify-content: center; /* align the names section horizontally in the center */
+  }
+  
+  .winningPoint {
+    display: flex; /* use flexbox layout for the winning point section */
+    justify-content: center; /* align the winning point section horizontally in the center */
+  }
+  
+  .gameStyle {
+    display: flex; /* use flexbox layout for the game style section */
+    flex-direction: column; /* stack the game style section elements vertically */
+    align-items: center; /* align the game style section elements horizontally in the center */
+  }
+  
+  .subtitle {
+    font-size: 36px; /* set the font size of the subtitle to 36px */
+    font-weight: bold; /* set the font weight of the subtitle to bold */
+  }
+  
+  .input {
+    width: 200px; /* set the width of the input to 200px */
+    height: 50px; /* set the height of the input to 50px */
+    margin: 10px; /* add some margin around the input */
+  }
+  
+  .label {
+    font-size: 24px; /* set the font size of the label to 24px */
+  }
+  
+  .radio {
+    margin-right: 10px; /* add some margin to the right of the radio button */
+  }
+  
+  .button {
+    width: 100px; /* set the width of the button to 100px */
+    height: 50px; /* set the height of the button to 50px */
+  }
+  
