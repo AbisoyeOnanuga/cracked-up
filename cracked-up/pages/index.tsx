@@ -6,6 +6,7 @@ import Links from "../components/Links";
 import Container from "../components/Container";
 import useCurrentUser from "../hooks/useCurrentUser";
 
+
 export default function Home() {
   const { loggedIn } = useCurrentUser();
 
@@ -25,7 +26,7 @@ export default function Home() {
         <link rel="icon" href="/favicon.svg" />
       </Head>
 
-      <Game numPlayers={numPlayers} /> // pass the numPlayers prop to the Game component
+      // <Game numPlayers={numPlayers} /> // pass the numPlayers prop to the Game component
 
       <div className={styles.controls}>
         <h2 className={styles.subtitle}>Choose your number of players</h2>
