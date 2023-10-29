@@ -1,0 +1,5 @@
+/* This is a CSS module file for styling the Shuffle component */
+.shuffle {
+    display: none; /* hide the shuffle component from the UI */
+  }
+  
