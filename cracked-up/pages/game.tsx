@@ -1,5 +1,6 @@
 // This is the main component that renders the game page
 import React, { useState, useEffect } from "react";
+import Head from 'next/head';
 import Card from "../components/card"; // This is a custom component that renders a card
 import Score from "../components/score"; // This is a custom component that updates the score of the players
 import Judge from "../components/judge"; // This is a custom component that selects the judge of each round
@@ -190,6 +191,10 @@ export default function Game({ numPlayers }: SettingsProps) {
                 <meta name="description" content="FCL Next Scaffold for the Flow Blockchain" />
                 <link rel="icon" href="/favicon.svg" />
             </Head>
+            
+            <main className={styles.main}>
+
+            </main>
             <h1 className={styles.title}>Card Game</h1>
             {status === "init" && (
                 <Init numPlayers={numPlayers} /> /* render Init component if status is init */
