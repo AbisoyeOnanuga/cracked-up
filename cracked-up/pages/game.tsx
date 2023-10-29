@@ -1,5 +1,6 @@
 // This is the game page that imports and uses the custom components
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/router";
 import shuffle from "../components/shuffle"; // import the shuffle component
 import Score from "../components/score"; // import the score component
 import Judge from "../components/judge"; // import the judge component
@@ -8,206 +9,268 @@ import Winner from "../components/winner"; // import the winner component
 import Card from "../components/card"; // import the card component
 import styles from "./Game.module.css"; // import the game styles
 
+// Define the types of cards, players, and game modes
+type Card = {
+  id: number;
+  front: string;
+  back: string;
+};
 
-// This is a mock data for the cards, you can replace it with your own data from the backend
-const cards = [
-  {
-    id: 1,
-    front: "What is the most annoying thing about humans?",
-    back: "Card Game Logo",
-    type: "question",
-  },
-  {
-    id: 2,
-    front: "Pineapple on pizza",
-    back: "Card Game Logo",
-    type: "answer",
-  },
-  {
-    id: 3,
-    front: "Make up a word and its definition",
-    back: "Card Game Logo",
-    type: "wildcard",
-  },
+type Player = {
+  id: number;
+  name: string;
+  score: number;
+  cards: Card[];
+};
+
+type GameMode = "classic" | "points";
+
+// Define the constants for the number of players, cards, and points
+const MIN_PLAYERS = 2;
+const MAX_PLAYERS = 6;
+const CARDS_PER_PLAYER = 10;
+const MAX_POINTS = 10;
+
+// Define the arrays of question cards and answer cards
+const questionCards: Card[] = [
+  // Add your question cards here
 ];
 
-// This is the main component that renders the game page
-export default function Game() {
-  // This is a state variable that stores the current question card
-  const [question, setQuestion] = useState(null);
+const answerCards: Card[] = [
+  // Add your answer cards here
+];
+/*
+// Define a function to shuffle an array of cards
+const shuffle = (array: Card[]) => {
+  let currentIndex = array.length,
+    randomIndex;
 
-  // This is a state variable that stores the current answer cards of the player
-  const [answers, setAnswers] = useState([]);
+  // While there remain elements to shuffle...
+  while (currentIndex != 0) {
+    // Pick a remaining element...
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex--;
 
-  // This is a state variable that stores the current score of each player as an object
-  const [score, setScore] = useState({});
+    // And swap it with the current element.
+    [array[currentIndex], array[randomIndex]] = [
+      array[randomIndex],
+      array[currentIndex],
+    ];
+  }
 
-  // This is a state variable that stores the current judge of each round as a string
-  const [judge, setJudge] = useState("");
+  return array;
+};
+*/
+// Define a function to deal cards to players
+const dealCards = (players: Player[], cards: Card[]) => {
+  // Shuffle the cards first
+  const shuffledCards = shuffle(cards);
 
-  // This is a state variable that stores the current round of the game
-  const [round, setRound] = useState(1);
+  // Loop through the players and assign them cards
+  for (let i = 0; i < players.length; i++) {
+    players[i].cards = shuffledCards.slice(
+      i * CARDS_PER_PLAYER,
+      (i + 1) * CARDS_PER_PLAYER
+    );
+  }
 
-  // This is a state variable that stores the winning point of the game
-  const [winningPoint, setWinningPoint] = useState(10);
+  // Return the remaining cards
+  return shuffledCards.slice(players.length * CARDS_PER_PLAYER);
+};
 
-  // This is a state variable that stores the game style of the game
-  const [gameStyle, setGameStyle] = useState("classic");
+// Define a component for the game page
+const GamePage = () => {
+  // Get the router object from Next.js
+  const router = useRouter();
 
-  // This is a state variable that stores the status of the game
-  const [status, setStatus] = useState("playing");
+  // Get the query parameters from the router object
+  const { numPlayers, judge, gameMode } = router.query;
 
-  // This is a state variable that stores the selected answer card of the player
-  const [selected, setSelected] = useState(null);
+  // Parse the query parameters as numbers or strings
+  const numPlayersNum = Number(numPlayers);
+  const judgeNum = Number(judge);
+  const gameModeStr = String(gameMode);
 
-  // This is a state variable that stores the voted answer card of the judge
-  const [voted, setVoted] = useState(null);
+  // Validate the query parameters and redirect to home page if invalid
+  if (
+    isNaN(numPlayersNum) ||
+    isNaN(judgeNum) ||
+    !["classic", "points"].includes(gameModeStr)
+  ) {
+    router.push("/");
+    return null;
+  }
 
-  // This is a function that shuffles an array using Fisher-Yates algorithm
-  const shuffle = (array) => {
-    let currentIndex = array.length,
-      randomIndex;
+  // Initialize the state variables for the game logic
+  const [players, setPlayers] = useState<Player[]>([]);
+  const [questionDeck, setQuestionDeck] = useState<Card[]>([]);
+  const [answerDeck, setAnswerDeck] = useState<Card[]>([]);
+  const [currentQuestion, setCurrentQuestion] = useState<Card | null>(null);
+  const [currentAnswers, setCurrentAnswers] = useState<Card[]>([]);
+  const [currentJudge, setCurrentJudge] = useState<number>(judgeNum);
+  const [gameOver, setGameOver] = useState<boolean>(false);
+  const [winner, setWinner] = useState<Player | null>(null);
 
-    // While there remain elements to shuffle...
-    while (currentIndex != 0) {
-      // Pick a remaining element...
-      randomIndex = Math.floor(Math.random() * currentIndex);
-      currentIndex--;
+  // Define a function to start a new round of the game
+  const startNewRound = () => {
+    // Check if there are enough question cards left in the deck
+    if (questionDeck.length > 0) {
+      // Pick a random question card from the deck and remove it
+      const randomIndex = Math.floor(Math.random() * questionDeck.length);
+      const questionCard = questionDeck[randomIndex];
+      setQuestionDeck(questionDeck.filter((card) => card.id !== questionCard.id));
 
-      // And swap it with the current element.
-      [array[currentIndex], array[randomIndex]] = [
-        array[randomIndex],
-        array[currentIndex],
-      ];
-    }
+      // Set the current question card state
+      setCurrentQuestion(questionCard);
 
-    return array;
-  };
+      // Reset the current answers state
+      setCurrentAnswers([]);
 
-  // This is a function that initializes the game with some settings
-  const initGame = () => {
-    // TODO: get the settings from the user input or default values
-    setWinningPoint(10); // set the winning point to 10
-    setGameStyle("classic"); // set the game style to classic
-    setJudge("Player1"); // set the judge to Player1
-
-    // TODO: get the cards from the backend or mock data
-    let questionCards = cards.filter((card) => card.type === "question"); // filter out the question cards
-    let answerCards = cards.filter((card) => card.type === "answer"); // filter out the answer cards
-
-    questionCards = shuffle(questionCards); // shuffle the question cards
-    answerCards = shuffle(answerCards); // shuffle the answer cards
-
-    setQuestion(questionCards.pop()); // pop out a question card and set it as the current question
-    setAnswers(answerCards.slice(0, 10)); // slice out 10 answer cards and set them as the current answers
-
-    setStatus("playing"); // set the status to playing
-    setSelected(null); // reset the selected answer card
-    setVoted(null); // reset the voted answer card
-  };
-
-  // This is a function that updates the game after each round
-  const updateGame = () => {
-    // TODO: get the cards from the backend or mock data
-    let questionCards = cards.filter((card) => card.type === "question"); // filter out the question cards
-    let answerCards = cards.filter((card) => card.type === "answer"); // filter out the answer cards
-
-    questionCards = shuffle(questionCards); // shuffle the question cards
-    answerCards = shuffle(answerCards); // shuffle the answer cards
-
-    setQuestion(questionCards.pop()); // pop out a question card and set it as the current question
-    setAnswers(answerCards.slice(0, 10)); // slice out 10 answer cards and set them as the current answers
-
-    setRound(round + 1); // increment the round by 1
-    setSelected(null); // reset the selected answer card
-    setVoted(null); // reset the voted answer card
-
-    // TODO: switch the judge to the next player or randomly
-    setJudge("Player2"); // set the judge to Player2
-
-    // TODO: check if the game is over or not
-    if (score >= winningPoint) {
-      // if the score is equal or greater than the winning point, the game is over
-      setStatus("over"); // set the status to over
+      // Update the current judge state by rotating among the players
+      setCurrentJudge((currentJudge + 1) % numPlayersNum);
+    } else {
+      // If there are no more question cards left, end the game
+      endGame();
     }
   };
 
-  // This is a function that handles the selection of an answer card by the player
-  const handleSelect = (card) => {
-    setSelected(card); // set the selected card as the current card
+  // Define a function to end the game and declare a winner
+  const endGame = () => {
+    // Set the game over state to true
+    setGameOver(true);
+
+    // Find the player with the highest score and set the winner state
+    const maxScore = Math.max(...players.map((player) => player.score));
+    const winningPlayer = players.find((player) => player.score === maxScore);
+    setWinner(winningPlayer || null);
   };
 
-  // This is a function that handles the submission of an answer card by the player
-  const handleSubmit = () => {
-    // TODO: send the selected card to the backend or store it locally
-    console.log("Submitted:", selected);
+  // Define a function to handle the player's card selection
+  const handleCardSelect = (card: Card) => {
+    // Check if the player is not the judge and has not already selected a card
+    if (currentJudge !== card.id && !currentAnswers.includes(card)) {
+      // Add the card to the current answers state
+      setCurrentAnswers([...currentAnswers, card]);
+
+      // Remove the card from the player's cards state
+      setPlayers(
+        players.map((player) =>
+          player.id === card.id
+            ? { ...player, cards: player.cards.filter((c) => c.id !== card.id) }
+            : player
+        )
+      );
+
+      // Check if there are enough answer cards left in the deck
+      if (answerDeck.length > 0) {
+        // Pick a random answer card from the deck and remove it
+        const randomIndex = Math.floor(Math.random() * answerDeck.length);
+        const answerCard = answerDeck[randomIndex];
+        setAnswerDeck(answerDeck.filter((card) => card.id !== answerCard.id));
+
+        // Add the card to the player's cards state
+        setPlayers(
+          players.map((player) =>
+            player.id === card.id
+              ? { ...player, cards: [...player.cards, answerCard] }
+              : player
+          )
+        );
+      }
+    }
   };
 
-  // This is a function that handles the voting of an answer card by the judge
-  const handleVote = (card) => {
-    setVoted(card); // set the voted card as the current card
-    // TODO: update the score of the player who played the voted card
-    setScore(score + 1); // increment the score by 1 for demonstration purpose
-    updateGame(); // update the game after voting
+  // Define a function to handle the judge's vote
+  const handleVote = (card: Card) => {
+    // Check if the judge has voted for a valid answer card
+    if (currentJudge !== card.id && currentAnswers.includes(card)) {
+      // Update the score of the player who submitted the answer card
+      setPlayers(
+        players.map((player) =>
+          player.id === card.id ? { ...player, score: player.score + 1 } : player
+        )
+      );
+
+      // Check if the game mode is points and the player has reached the max points
+      if (gameModeStr === "points" && players[card.id].score + 1 === MAX_POINTS) {
+        // End the game and declare the player as the winner
+        endGame();
+        setWinner(players[card.id]);
+      } else {
+        // Start a new round of the game
+        startNewRound();
+      }
+    }
   };
 
-  // This is a function that handles the restart of the game by the player
-  const handleRestart = () => {
-    initGame(); // initialize the game again
-  };
-
-  // This is a hook that runs once when the component mounts
+  // Use an effect hook to initialize the game state when the component mounts
   useEffect(() => {
-    initGame(); // initialize the game when the component mounts
+    // Create an array of players with ids, names, scores, and cards
+    const playersArray: Player[] = [];
+    for (let i = 0; i < numPlayersNum; i++) {
+      playersArray.push({
+        id: i,
+        name: `Player ${i + 1}`,
+        score: 0,
+        cards: [],
+      });
+    }
+
+    // Set the players state with the array of players
+    setPlayers(playersArray);
+
+    // Set the question deck state with a shuffled copy of the question cards array
+    setQuestionDeck(shuffle([...questionCards]));
+
+    // Set the answer deck state with a shuffled copy of the answer cards array
+    setAnswerDeck(shuffle([...answerCards]));
+
+    // Start a new round of the game
+    startNewRound();
   }, []);
 
   return (
-    <div className={styles.container}>
-      <h1 className={styles.title}>Card Game</h1>
-      <div className={styles.game}>
-        <div className={styles.question}>
-          <h2 className={styles.subtitle}>Question</h2>
-          {question && <Card card={question} />}
+    <div className="container">
+      <h1>Words Against Humanity with a Twist</h1>
+      {gameOver ? (
+        <div className="game-over">
+          <h2>Game Over!</h2>
+          {winner ? (
+            <p>Congratulations, {winner.name}! You have won the game with {winner.score} points!</p>
+          ) : (
+            <p>It's a tie! No one has won the game.</p>
+          )}
+          <button onClick={() => router.push("/")}>Play Again</button>
         </div>
-        <div className={styles.answers}>
-          <h2 className={styles.subtitle}>Answers</h2>
-          {answers.map((card) => (
-            <Card
-              key={card.id}
-              card={card}
-              selected={selected && selected.id === card.id}
-              onClick={() => handleSelect(card)}
-            />
+      ) : (
+        <div className="game-play">
+          <h2>Current Round</h2>
+          <p>The judge is {players[currentJudge].name}.</p>
+          {currentQuestion && (
+            <div className="question-card">
+              <p>{currentQuestion.front}</p>
+            </div>
+          )}
+          <h3>Current Answers</h3>
+          <div className="answer-cards">
+            {currentAnswers.map((card) => (
+              <div key={card.id} className="answer-card" onClick={() => handleVote(card)}>
+                <p>{card.front}</p>
+              </div>
+            ))}
+          </div>
+          <h3>Your Cards</h3>
+          <div className="your-cards">
+            {players[0].cards.map((card) => (
+              <div key={card.id} className="yourcard" onClick={() => handleCardSelect(card)}>
+              <p>{card.front}</p>
+            </div>
           ))}
         </div>
       </div>
-      <div className={styles.controls}>
-        {status === "playing" && (
-          <>
-            <p className={styles.info}>
-              Round: {round} / Judge: {judge} / Score: {score}
-            </p>
-            {selected && (
-              <button className={styles.button} onClick={handleSubmit}>
-                Submit
-              </button>
-            )}
-            {voted && (
-              <button className={styles.button} onClick={handleVote}>
-                Vote
-              </button>
-            )}
-          </>
-        )}
-        {status === "over" && (
-          <>
-            <p className={styles.info}>Game Over! You won with {score} points!</p>
-            <button className={styles.button} onClick={handleRestart}>
-              Restart
-            </button>
-          </>
-        )}
-      </div>
-    </div>
-  );
-}
+    )}
+  </div>
+);
+};
+
+export default GamePage;
