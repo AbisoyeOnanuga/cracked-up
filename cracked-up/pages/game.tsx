@@ -184,6 +184,12 @@ export default function Game({ numPlayers }: SettingsProps) {
 
     return (
         <div className={styles.container}>
+
+            <Head>
+                <title>FCL Next Scaffold</title>
+                <meta name="description" content="FCL Next Scaffold for the Flow Blockchain" />
+                <link rel="icon" href="/favicon.svg" />
+            </Head>
             <h1 className={styles.title}>Card Game</h1>
             {status === "init" && (
                 <Init numPlayers={numPlayers} /> /* render Init component if status is init */
