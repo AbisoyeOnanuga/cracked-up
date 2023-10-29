@@ -38,5 +38,9 @@ export default function Score({ players, voted }: ScoreProps) {
     }
   }, [voted]);
 
+  useEffect(() => {
+    // do something with players and voted props
+  }, []); // pass an empty array as dependency
+
   return score; // return the score object
 }
