@@ -1,0 +1,34 @@
+{
+	"contracts": {
+		"HelloWorld": "cadence/contracts/HelloWorld.cdc"
+	},
+	"networks": {
+		"emulator": "127.0.0.1:3569",
+		"mainnet": "access.mainnet.nodes.onflow.org:9000",
+		"testnet": "access.devnet.nodes.onflow.org:9000"
+	},
+	"accounts": {
+		"CrackedUp": {
+			"address": "192215e1055f65ee",
+			"key": {
+				"type": "file",
+				"location": "CrackedUp.pkey"
+			}
+		},
+		"default": {
+			"address": "01cf0e2f2f715450",
+			"key": "87094e329b590f3d6648cad8d9ff4b5e85e8c7dccb8cc179c23be052ea5728d4"
+		},
+		"emulator-account": {
+			"address": "f8d6e0586b0a20c7",
+			"key": "87094e329b590f3d6648cad8d9ff4b5e85e8c7dccb8cc179c23be052ea5728d4"
+		}
+	},
+	"deployments": {
+		"emulator": {
+			"default": [
+				"HelloWorld"
+			]
+		}
+	}
+}
